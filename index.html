@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Overlay</title>
+
+<style>
+html,body{
+  margin:0;
+  background:transparent;
+  font-family:Arial,Helvetica,sans-serif;
+}
+
+.wrap{
+  padding:10px 14px;
+  display:inline-block;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:28px;
+}
+
+.row{
+  font-size:42px;
+  font-weight:700;
+  color:white;
+  text-shadow:0 2px 6px rgba(0,0,0,.7);
+}
+
+.value{
+  padding:0 6px;
+  border-radius:8px;
+  background:rgba(0,0,0,.25);
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="grid">
+
+    <div>
+      <div class="row">Try: <span id="tryX" contenteditable="true">0</span></div>
+      <div class="row">Punti: <span id="puntiY" contenteditable="true">0</span></div>
+    </div>
+
+    <div>
+      <div class="row">Try: <span id="tryZ" contenteditable="true">0</span></div>
+      <div class="row">Punti: <span id="puntiA" contenteditable="true">0</span></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- FIREBASE -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAwZgKmhSvknOds6Ft6CM41ak3kR4U-88E",
+  authDomain: "bennyghei.firebaseapp.com",
+  databaseURL: "https://bennyghei-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "bennyghei",
+  storageBucket: "bennyghei.firebasestorage.app",
+  messagingSenderId: "867415998756",
+  appId: "1:867415998756:web:f9aaac9ebad1612e2d33b1"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const scoreRef = ref(db, "score");
+
+onValue(scoreRef, (snap)=>{
+  if(!snap.exists()) return;
+  const d = snap.val();
+  for(const k in d){
+    const el=document.getElementById(k);
+    if(el && document.activeElement!==el)
+      el.textContent=d[k];
+  }
+});
+
+["tryX","puntiY","tryZ","puntiA"].forEach(id=>{
+  const el=document.getElementById(id);
+  el.addEventListener("input",()=>{
+    set(scoreRef,{
+      tryX:tryX.textContent,
+      puntiY:puntiY.textContent,
+      tryZ:tryZ.textContent,
+      puntiA:puntiA.textContent
+    });
+  });
+});
+</script>
+
+</body>
+</html>
