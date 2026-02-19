@@ -155,16 +155,15 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getDatabase, ref, set, onValue, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-  // INCOLLA QUI LA TUA CONFIG DA FIREBASE
-  const firebaseConfig = {
-    apiKey: "AIzaSyAwZgKmhSvknOds6Ft6CM41ak3kR4U-88E",
-    authDomain: "bennyghei.firebaseapp.com",
-    databaseURL: "https://bennyghei-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "bennyghei",
-    storageBucket: "bennyghei.firebasestorage.app",
-    messagingSenderId: "867415998756",
-    appId: "1:867415998756:web:f9aaac9ebad1612e2d33b1"
-  };
+const firebaseConfig = {
+  apiKey: "AIzaSyAwZgKmhSvknOds6Ft6CM41ak3kR4U-88E",
+  authDomain: "bennyghei.firebaseapp.com",
+  databaseURL: "https://bennyghei-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "bennyghei",
+  storageBucket: "bennyghei.firebasestorage.app",
+  messagingSenderId: "867415998756",
+  appId: "1:867415998756:web:f9aaac9ebad1612e2d33b1"
+};
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
