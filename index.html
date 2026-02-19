@@ -6,96 +6,220 @@
 <title>Overlay</title>
 
 <style>
-html,body{
-  margin:0;
-  background:transparent;
-  font-family:Arial,Helvetica,sans-serif;
-}
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    font-family: Arial, Helvetica, sans-serif;
+  }
 
-.wrap{
-  padding:10px 14px;
-  display:inline-block;
-}
+  .wrap{
+    display:inline-block;
+    padding: 10px 14px;
+    background: transparent; /* resta trasparente */
+  }
 
-.grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:28px;
-}
+  /* DISTANZA TRA LE DUE “SQUADRE” */
+  .grid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 80px;   /* <— aumenta/diminuisci qui */
+    align-items:start;
+  }
 
-.row{
-  font-size:42px;
-  font-weight:700;
-  color:white;
-  text-shadow:0 2px 6px rgba(0,0,0,.7);
-}
+  /* DISTANZA TRA TRY e PUNTI nella stessa colonna */
+  .col{
+    display:grid;
+    row-gap: 26px;      /* <— aumenta/diminuisci qui */
+  }
 
-.value{
-  padding:0 6px;
-  border-radius:8px;
-  background:rgba(0,0,0,.25);
-}
+  .row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap: 16px;
+    white-space: nowrap;
+    color: #fff;
+    font-weight: 800;
+    font-size: 42px;
+    line-height: 1.05;
+    text-shadow: 0 2px 6px rgba(0,0,0,.7);
+  }
+
+  .left{
+    display:flex;
+    align-items:baseline;
+    gap: 12px;
+  }
+
+  .label{
+    opacity: .95;
+  }
+
+  .value{
+    min-width: 2ch;
+    padding: 0 10px;
+    border-radius: 10px;
+    background: rgba(0,0,0,.22);
+  }
+
+  .controls{
+    display:flex;
+    gap: 8px;
+  }
+
+  button{
+    appearance:none;
+    border: 0;
+    border-radius: 10px;
+    padding: 6px 10px;
+    font-size: 18px;
+    font-weight: 800;
+    color: #fff;
+    background: rgba(0,0,0,.35);
+    cursor:pointer;
+    line-height: 1;
+    text-shadow: 0 2px 6px rgba(0,0,0,.5);
+  }
+  button:active{
+    transform: translateY(1px);
+  }
+
+  /* se vuoi bottoni più grandi:
+  button{ font-size:20px; padding:8px 12px; }
+  */
 </style>
 </head>
+
 <body>
+  <div class="wrap">
+    <div class="grid">
+      <!-- SINISTRA -->
+      <div class="col">
+        <div class="row">
+          <div class="left">
+            <span class="label">Try:</span>
+            <span class="value" id="tryX">0</span>
+          </div>
+          <div class="controls">
+            <button data-action="add" data-key="tryX" data-delta="-1">-</button>
+            <button data-action="add" data-key="tryX" data-delta="1">+</button>
+          </div>
+        </div>
 
-<div class="wrap">
-  <div class="grid">
+        <div class="row">
+          <div class="left">
+            <span class="label">Punti:</span>
+            <span class="value" id="puntiY">0</span>
+          </div>
+          <div class="controls">
+            <button data-action="add" data-key="puntiY" data-delta="-5">-5</button>
+            <button data-action="add" data-key="puntiY" data-delta="5">+5</button>
+            <button data-action="add" data-key="puntiY" data-delta="-10">-10</button>
+            <button data-action="add" data-key="puntiY" data-delta="10">+10</button>
+          </div>
+        </div>
+      </div>
 
-    <div>
-      <div class="row">Try: <span id="tryX" contenteditable="true">0</span></div>
-      <div class="row">Punti: <span id="puntiY" contenteditable="true">0</span></div>
+      <!-- DESTRA -->
+      <div class="col">
+        <div class="row">
+          <div class="left">
+            <span class="label">Try:</span>
+            <span class="value" id="tryZ">0</span>
+          </div>
+          <div class="controls">
+            <button data-action="add" data-key="tryZ" data-delta="-1">-</button>
+            <button data-action="add" data-key="tryZ" data-delta="1">+</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="left">
+            <span class="label">Punti:</span>
+            <span class="value" id="puntiA">0</span>
+          </div>
+          <div class="controls">
+            <button data-action="add" data-key="puntiA" data-delta="-5">-5</button>
+            <button data-action="add" data-key="puntiA" data-delta="5">+5</button>
+            <button data-action="add" data-key="puntiA" data-delta="-10">-10</button>
+            <button data-action="add" data-key="puntiA" data-delta="10">+10</button>
+          </div>
+        </div>
+      </div>
+
     </div>
-
-    <div>
-      <div class="row">Try: <span id="tryZ" contenteditable="true">0</span></div>
-      <div class="row">Punti: <span id="puntiA" contenteditable="true">0</span></div>
-    </div>
-
   </div>
-</div>
 
-<!-- FIREBASE -->
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getDatabase, ref, set, onValue, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyAwZgKmhSvknOds6Ft6CM41ak3kR4U-88E",
-  authDomain: "bennyghei.firebaseapp.com",
-  databaseURL: "https://bennyghei-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "bennyghei",
-  storageBucket: "bennyghei.firebasestorage.app",
-  messagingSenderId: "867415998756",
-  appId: "1:867415998756:web:f9aaac9ebad1612e2d33b1"
-};
+  // INCOLLA QUI LA TUA CONFIG DA FIREBASE
+  const firebaseConfig = {
+    apiKey: "AIzaSyAwZgKmhSvknOds6Ft6CM41ak3kR4U-88E",
+    authDomain: "bennyghei.firebaseapp.com",
+    databaseURL: "https://bennyghei-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "bennyghei",
+    storageBucket: "bennyghei.firebasestorage.app",
+    messagingSenderId: "867415998756",
+    appId: "1:867415998756:web:f9aaac9ebad1612e2d33b1"
+  };
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-const scoreRef = ref(db, "score");
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const scoreRef = ref(db, "score");
 
-onValue(scoreRef, (snap)=>{
-  if(!snap.exists()) return;
-  const d = snap.val();
-  for(const k in d){
-    const el=document.getElementById(k);
-    if(el && document.activeElement!==el)
-      el.textContent=d[k];
+  const keys = ["tryX","puntiY","tryZ","puntiA"];
+
+  function toInt(x){
+    const n = parseInt(String(x).replace(/[^\d-]/g,""), 10);
+    return Number.isFinite(n) ? n : 0;
   }
-});
 
-["tryX","puntiY","tryZ","puntiA"].forEach(id=>{
-  const el=document.getElementById(id);
-  el.addEventListener("input",()=>{
-    set(scoreRef,{
-      tryX:tryX.textContent,
-      puntiY:puntiY.textContent,
-      tryZ:tryZ.textContent,
-      puntiA:puntiA.textContent
+  async function ensureInit(){
+    const snap = await get(scoreRef);
+    if(!snap.exists()){
+      await set(scoreRef, { tryX:0, puntiY:0, tryZ:0, puntiA:0 });
+    }
+  }
+
+  // Aggiorna UI quando cambia in Firebase
+  onValue(scoreRef, (snap)=>{
+    if(!snap.exists()) return;
+    const d = snap.val();
+    for(const k of keys){
+      const el = document.getElementById(k);
+      if(el) el.textContent = toInt(d?.[k] ?? 0);
+    }
+  });
+
+  // Bottoni +/- con delta
+  document.addEventListener("click", async (e) => {
+    const btn = e.target.closest("button[data-action='add']");
+    if(!btn) return;
+
+    const key = btn.dataset.key;
+    const delta = toInt(btn.dataset.delta);
+
+    const snap = await get(scoreRef);
+    const cur = snap.exists() ? snap.val() : {};
+    const next = { ...cur };
+
+    next[key] = toInt(cur[key]) + delta;
+
+    // opzionale: evita valori negativi
+    // next[key] = Math.max(0, next[key]);
+
+    await set(scoreRef, {
+      tryX: toInt(next.tryX),
+      puntiY: toInt(next.puntiY),
+      tryZ: toInt(next.tryZ),
+      puntiA: toInt(next.puntiA),
     });
   });
-});
-</script>
 
+  ensureInit();
+</script>
 </body>
 </html>
