@@ -33,12 +33,16 @@
   .label{ opacity:.95; }
 
   /* Valori editabili */
-  .value{
-    min-width: 2ch;
-    padding: 0 10px;
-    border-radius: 10px;
-    background: rgba(0,0,0,.22);
-  }
+.value{
+  width: 4ch;             
+  text-align: right;
+  font-variant-numeric: tabular-nums; 
+  font-family: Consolas, monospace;   
+  padding: 0 10px;
+  border-radius: 10px;
+  background: rgba(0,0,0,.22);
+}
+
   .value[contenteditable="true"]{
     outline:none;
     cursor:text;
@@ -242,3 +246,4 @@
 </script>
 </body>
 </html>
+
