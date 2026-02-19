@@ -6,88 +6,63 @@
 <title>Overlay</title>
 
 <style>
-  html, body {
-    margin: 0;
-    padding: 0;
-    background: transparent;
-    font-family: Arial, Helvetica, sans-serif;
-  }
+  html, body { margin:0; padding:0; background:transparent; font-family:Arial,Helvetica,sans-serif; }
+  .wrap{ display:inline-block; padding:10px 14px; }
 
-  .wrap{
-    display:inline-block;
-    padding: 10px 14px;
-    background: transparent; /* resta trasparente */
-  }
-
-  /* DISTANZA TRA LE DUE “SQUADRE” */
   .grid{
     display:grid;
-    grid-template-columns: 1fr 1fr;
-    column-gap: 80px;   /* <— aumenta/diminuisci qui */
+    grid-template-columns:1fr 1fr;
+    column-gap: 80px;   /* distanza tra le 2 colonne */
     align-items:start;
   }
-
-  /* DISTANZA TRA TRY e PUNTI nella stessa colonna */
-  .col{
-    display:grid;
-    row-gap: 26px;      /* <— aumenta/diminuisci qui */
-  }
+  .col{ display:grid; row-gap: 26px; } /* distanza tra Try e Punti */
 
   .row{
     display:flex;
     align-items:center;
     justify-content:space-between;
-    gap: 16px;
-    white-space: nowrap;
-    color: #fff;
-    font-weight: 800;
-    font-size: 42px;
-    line-height: 1.05;
-    text-shadow: 0 2px 6px rgba(0,0,0,.7);
+    gap:16px;
+    white-space:nowrap;
+    color:#fff;
+    font-weight:800;
+    font-size:42px;
+    line-height:1.05;
+    text-shadow:0 2px 6px rgba(0,0,0,.7);
   }
+  .left{ display:flex; align-items:baseline; gap:12px; }
+  .label{ opacity:.95; }
 
-  .left{
-    display:flex;
-    align-items:baseline;
-    gap: 12px;
-  }
-
-  .label{
-    opacity: .95;
-  }
-
+  /* Valori editabili */
   .value{
     min-width: 2ch;
     padding: 0 10px;
     border-radius: 10px;
     background: rgba(0,0,0,.22);
   }
-
-  .controls{
-    display:flex;
-    gap: 8px;
+  .value[contenteditable="true"]{
+    outline:none;
+    cursor:text;
+  }
+  .value.editing{
+    background: rgba(0,0,0,.40);
+    box-shadow: 0 0 0 2px rgba(255,255,255,.25) inset;
   }
 
+  .controls{ display:flex; gap:8px; }
   button{
     appearance:none;
-    border: 0;
-    border-radius: 10px;
-    padding: 6px 10px;
-    font-size: 18px;
-    font-weight: 800;
-    color: #fff;
-    background: rgba(0,0,0,.35);
+    border:0;
+    border-radius:10px;
+    padding:6px 10px;
+    font-size:18px;
+    font-weight:800;
+    color:#fff;
+    background:rgba(0,0,0,.35);
     cursor:pointer;
-    line-height: 1;
-    text-shadow: 0 2px 6px rgba(0,0,0,.5);
+    line-height:1;
+    text-shadow:0 2px 6px rgba(0,0,0,.5);
   }
-  button:active{
-    transform: translateY(1px);
-  }
-
-  /* se vuoi bottoni più grandi:
-  button{ font-size:20px; padding:8px 12px; }
-  */
+  button:active{ transform:translateY(1px); }
 </style>
 </head>
 
@@ -99,7 +74,7 @@
         <div class="row">
           <div class="left">
             <span class="label">Try:</span>
-            <span class="value" id="tryX">0</span>
+            <span class="value" id="tryX" contenteditable="true" data-key="tryX">0</span>
           </div>
           <div class="controls">
             <button data-action="add" data-key="tryX" data-delta="-1">-</button>
@@ -110,7 +85,7 @@
         <div class="row">
           <div class="left">
             <span class="label">Punti:</span>
-            <span class="value" id="puntiY">0</span>
+            <span class="value" id="puntiY" contenteditable="true" data-key="puntiY">0</span>
           </div>
           <div class="controls">
             <button data-action="add" data-key="puntiY" data-delta="-5">-5</button>
@@ -126,7 +101,7 @@
         <div class="row">
           <div class="left">
             <span class="label">Try:</span>
-            <span class="value" id="tryZ">0</span>
+            <span class="value" id="tryZ" contenteditable="true" data-key="tryZ">0</span>
           </div>
           <div class="controls">
             <button data-action="add" data-key="tryZ" data-delta="-1">-</button>
@@ -137,7 +112,7 @@
         <div class="row">
           <div class="left">
             <span class="label">Punti:</span>
-            <span class="value" id="puntiA">0</span>
+            <span class="value" id="puntiA" contenteditable="true" data-key="puntiA">0</span>
           </div>
           <div class="controls">
             <button data-action="add" data-key="puntiA" data-delta="-5">-5</button>
@@ -147,7 +122,6 @@
           </div>
         </div>
       </div>
-
     </div>
   </div>
 
@@ -155,21 +129,24 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getDatabase, ref, set, onValue, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyAwZgKmhSvknOds6Ft6CM41ak3kR4U-88E",
-  authDomain: "bennyghei.firebaseapp.com",
-  databaseURL: "https://bennyghei-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "bennyghei",
-  storageBucket: "bennyghei.firebasestorage.app",
-  messagingSenderId: "867415998756",
-  appId: "1:867415998756:web:f9aaac9ebad1612e2d33b1"
-};
+  // INCOLLA QUI LA TUA CONFIG
+  const firebaseConfig = {
+    apiKey: "AIzaSyAwZgKmhSvknOds6Ft6CM41ak3kR4U-88E",
+    authDomain: "bennyghei.firebaseapp.com",
+    databaseURL: "https://bennyghei-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "bennyghei",
+    storageBucket: "bennyghei.firebasestorage.app",
+    messagingSenderId: "867415998756",
+    appId: "1:867415998756:web:f9aaac9ebad1612e2d33b1"
+  };
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
   const scoreRef = ref(db, "score");
 
   const keys = ["tryX","puntiY","tryZ","puntiA"];
+
+  const els = Object.fromEntries(keys.map(k => [k, document.getElementById(k)]));
 
   function toInt(x){
     const n = parseInt(String(x).replace(/[^\d-]/g,""), 10);
@@ -183,13 +160,24 @@ const firebaseConfig = {
     }
   }
 
-  // Aggiorna UI quando cambia in Firebase
+  async function writeAll(next){
+    await set(scoreRef, {
+      tryX: toInt(next.tryX),
+      puntiY: toInt(next.puntiY),
+      tryZ: toInt(next.tryZ),
+      puntiA: toInt(next.puntiA),
+    });
+  }
+
+  // Aggiorna UI quando cambia in Firebase (ma NON sovrascrivere mentre stai editando)
   onValue(scoreRef, (snap)=>{
     if(!snap.exists()) return;
     const d = snap.val();
     for(const k of keys){
-      const el = document.getElementById(k);
-      if(el) el.textContent = toInt(d?.[k] ?? 0);
+      const el = els[k];
+      if(!el) continue;
+      if(el.classList.contains("editing")) continue; // non disturbare chi scrive
+      el.textContent = toInt(d?.[k] ?? 0);
     }
   });
 
@@ -202,19 +190,51 @@ const firebaseConfig = {
     const delta = toInt(btn.dataset.delta);
 
     const snap = await get(scoreRef);
-    const cur = snap.exists() ? snap.val() : {};
-    const next = { ...cur };
+    const cur = snap.exists() ? snap.val() : { tryX:0, puntiY:0, tryZ:0, puntiA:0 };
+    const next = { ...cur, [key]: toInt(cur[key]) + delta };
 
-    next[key] = toInt(cur[key]) + delta;
+    await writeAll(next);
+  });
 
-    // opzionale: evita valori negativi
-    // next[key] = Math.max(0, next[key]);
+  // Edit manuale: Enter = salva, Esc = annulla, blur = salva
+  function commit(el){
+    el.classList.remove("editing");
+    const key = el.dataset.key;
+    const val = toInt(el.textContent);
+    el.textContent = val;
 
-    await set(scoreRef, {
-      tryX: toInt(next.tryX),
-      puntiY: toInt(next.puntiY),
-      tryZ: toInt(next.tryZ),
-      puntiA: toInt(next.puntiA),
+    // leggi stato corrente e aggiorna solo quel campo (scrivendo comunque tutti)
+    get(scoreRef).then(snap => {
+      const cur = snap.exists() ? snap.val() : { tryX:0, puntiY:0, tryZ:0, puntiA:0 };
+      const next = { ...cur, [key]: val };
+      return writeAll(next);
+    });
+  }
+
+  function cancel(el){
+    el.classList.remove("editing");
+    // ripristina dal db
+    get(scoreRef).then(snap => {
+      const cur = snap.exists() ? snap.val() : {};
+      el.textContent = toInt(cur?.[el.dataset.key] ?? 0);
+    });
+  }
+
+  keys.forEach(k=>{
+    const el = els[k];
+
+    el.addEventListener("focus", ()=> el.classList.add("editing"));
+    el.addEventListener("blur", ()=> commit(el));
+
+    el.addEventListener("keydown", (e)=>{
+      if(e.key === "Enter"){ e.preventDefault(); el.blur(); }   // salva
+      if(e.key === "Escape"){ e.preventDefault(); cancel(el); el.blur(); } // annulla
+    });
+
+    el.addEventListener("paste", (e)=>{
+      e.preventDefault();
+      const text = (e.clipboardData || window.clipboardData).getData("text");
+      document.execCommand("insertText", false, String(text).replace(/\s+/g," ").trim());
     });
   });
 
