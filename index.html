@@ -7,7 +7,7 @@
 
 <style>
   html, body { margin:0; padding:0; background:transparent; font-family:Arial,Helvetica,sans-serif; }
-  body, body * { -webkit-text-stroke: 8px #000; paint-order: stroke fill; }
+  body, body * { -webkit-text-stroke: 5px #000; paint-order: stroke fill; }
   .wrap{ display:inline-block; padding:10px 14px; }
 
   .grid{
@@ -17,6 +17,34 @@
     align-items:start;
   }
   .col{ display:grid; row-gap: 26px; } /* distanza tra Try e Punti */
+  .name-row{
+    display:flex;
+    align-items:center;
+    margin-bottom:10px;
+  }
+  .name-input{
+    padding: 0;
+    background: transparent;
+    color: #fff;
+    font-size: 42px;
+    font-weight: 800;
+    line-height: 1.05;
+    min-height: 1em;
+    display: inline;
+    white-space: nowrap;
+    text-shadow:0 2px 6px rgba(0,0,0,.7);
+    font-family: Arial,Helvetica,sans-serif;
+    outline:none;
+    caret-color:#fff;
+    cursor:text;
+    pointer-events:auto;
+    box-shadow:none;
+    font-variant-numeric: normal;
+  }
+  .name-input:focus,
+  .name-input:focus-visible{
+    outline: none;
+  }
 
   .row{
     display:flex;
@@ -68,6 +96,30 @@
     text-shadow:0 2px 6px rgba(0,0,0,.5);
   }
   button:active{ transform:translateY(1px); }
+
+  .ditto-stack{
+    margin-top: 8px;
+    display:grid;
+    grid-template-columns: repeat(5, 80px);
+    gap: 6px;
+  }
+  .ditto-stack img{
+    width: 80px;
+    height: 80px;
+    justify-self:start;
+    object-fit: contain;
+    image-rendering: auto;
+    pointer-events: none;
+  }
+
+  .count{
+    min-width: 28px;
+    text-align:center;
+    color:#fff;
+    font-weight:800;
+    font-size:34px;
+    text-shadow:0 2px 6px rgba(0,0,0,.7);
+  }
 </style>
 </head>
 
@@ -76,6 +128,9 @@
     <div class="grid">
       <!-- SINISTRA -->
       <div class="col">
+        <div class="name-row">
+          <span id="nameL" class="name-input" data-key="nameL" contenteditable="true" tabindex="0" spellcheck="false">Nome sinistra</span>
+        </div>
         <div class="row">
           <div class="left">
             <span class="label">Try:</span>
@@ -99,10 +154,23 @@
             <button data-action="add" data-key="puntiY" data-delta="10">+10</button>
           </div>
         </div>
+
+        <div class="ditto-stack" id="dittoListL" data-key="dittoL"></div>
+        <div class="row">
+          <div class="left">
+            <span class="label">Ditto:</span>
+            <button data-action="ditto" data-key="dittoL" data-delta="-1">-</button>
+            <span class="count" id="dittoL" data-key="dittoL">0</span>
+            <button data-action="ditto" data-key="dittoL" data-delta="1">+</button>
+          </div>
+        </div>
       </div>
 
       <!-- DESTRA -->
       <div class="col">
+        <div class="name-row">
+          <span id="nameR" class="name-input" data-key="nameR" contenteditable="true" tabindex="0" spellcheck="false">Nome destra</span>
+        </div>
         <div class="row">
           <div class="left">
             <span class="label">Try:</span>
@@ -124,6 +192,16 @@
             <button data-action="add" data-key="puntiA" data-delta="5">+5</button>
             <button data-action="add" data-key="puntiA" data-delta="-10">-10</button>
             <button data-action="add" data-key="puntiA" data-delta="10">+10</button>
+          </div>
+        </div>
+
+        <div class="ditto-stack" id="dittoListR" data-key="dittoR"></div>
+        <div class="row">
+          <div class="left">
+            <span class="label">Ditto:</span>
+            <button data-action="ditto" data-key="dittoR" data-delta="-1">-</button>
+            <span class="count" id="dittoR" data-key="dittoR">0</span>
+            <button data-action="ditto" data-key="dittoR" data-delta="1">+</button>
           </div>
         </div>
       </div>
@@ -149,9 +227,27 @@
   const db = getDatabase(app);
   const scoreRef = ref(db, "score");
 
-  const keys = ["tryX","puntiY","tryZ","puntiA"];
+  const keys = ["tryX","puntiY","tryZ","puntiA","nameL","nameR","dittoL","dittoR"];
+  const numericKeys = new Set(["tryX","puntiY","tryZ","puntiA","dittoL","dittoR"]);
+  const textKeys = new Set(["nameL","nameR"]);
 
   const els = Object.fromEntries(keys.map(k => [k, document.getElementById(k)]));
+  const dittoStacks = {
+    dittoL: document.getElementById("dittoListL"),
+    dittoR: document.getElementById("dittoListR"),
+  };
+
+  function buildDittoImageList(container, count){
+    const n = Math.max(0, toInt(count));
+    container.innerHTML = "";
+    for(let i=0; i<n; i++){
+      const img = document.createElement("img");
+      img.src = "ditto.png";
+      img.alt = "ditto";
+      img.loading = "eager";
+      container.appendChild(img);
+    }
+  }
 
   function toInt(x){
     const n = parseInt(String(x).replace(/[^\d-]/g,""), 10);
@@ -161,7 +257,11 @@
   async function ensureInit(){
     const snap = await get(scoreRef);
     if(!snap.exists()){
-      await set(scoreRef, { tryX:0, puntiY:0, tryZ:0, puntiA:0 });
+      await set(scoreRef, {
+        tryX:0, puntiY:0, tryZ:0, puntiA:0,
+        nameL:"", nameR:"",
+        dittoL:0, dittoR:0
+      });
     }
   }
 
@@ -171,6 +271,10 @@
       puntiY: toInt(next.puntiY),
       tryZ: toInt(next.tryZ),
       puntiA: toInt(next.puntiA),
+      nameL: String(next.nameL ?? ""),
+      nameR: String(next.nameR ?? ""),
+      dittoL: toInt(next.dittoL),
+      dittoR: toInt(next.dittoR)
     });
   }
 
@@ -181,9 +285,22 @@
     for(const k of keys){
       const el = els[k];
       if(!el) continue;
+      const val = d?.[k] ?? "";
+
+      if(textKeys.has(k)){
+        if(el.classList.contains("editing")) continue;
+        const fallback = k === "nameL" ? "Nome sinistra" : "Nome destra";
+        const text = String(val ?? "").trim();
+        el.textContent = text || fallback;
+        continue;
+      }
+
       if(el.classList.contains("editing")) continue; // non disturbare chi scrive
-      el.textContent = toInt(d?.[k] ?? 0);
+      el.textContent = toInt(val ?? 0);
     }
+
+    buildDittoImageList(dittoStacks.dittoL, toInt(d?.dittoL ?? 0));
+    buildDittoImageList(dittoStacks.dittoR, toInt(d?.dittoR ?? 0));
   });
 
   // Bottoni +/- con delta
@@ -201,12 +318,34 @@
     await writeAll(next);
   });
 
+  document.addEventListener("click", async (e) => {
+    const btn = e.target.closest("button[data-action='ditto']");
+    if(!btn) return;
+
+    const key = btn.dataset.key;
+    const delta = toInt(btn.dataset.delta);
+    const pointsKey = key === "dittoL" ? "puntiY" : "puntiA";
+
+    const snap = await get(scoreRef);
+    const cur = snap.exists() ? snap.val() : { tryX:0, puntiY:0, tryZ:0, puntiA:0, nameL:"", nameR:"", dittoL:0, dittoR:0 };
+    const current = toInt(cur[key]);
+    const nextVal = Math.max(0, current + delta);
+    const appliedDelta = nextVal - current;
+    const nextPoints = toInt(cur[pointsKey]) + (appliedDelta * 50);
+    const next = { ...cur, [key]: nextVal, [pointsKey]: nextPoints };
+
+    await writeAll(next);
+  });
+
   // Edit manuale: Enter = salva, Esc = annulla, blur = salva
   function commit(el){
     el.classList.remove("editing");
     const key = el.dataset.key;
-    const val = toInt(el.textContent);
-    el.textContent = val;
+    const isText = textKeys.has(key);
+    const val = isText ? String(el.textContent ?? "") : toInt(el.textContent);
+    if(!el.isContentEditable && !isText){
+      el.textContent = val;
+    }
 
     // leggi stato corrente e aggiorna solo quel campo (scrivendo comunque tutti)
     get(scoreRef).then(snap => {
@@ -221,12 +360,14 @@
     // ripristina dal db
     get(scoreRef).then(snap => {
       const cur = snap.exists() ? snap.val() : {};
-      el.textContent = toInt(cur?.[el.dataset.key] ?? 0);
+      const key = el.dataset.key;
+      el.textContent = textKeys.has(key) ? String(cur?.[key] ?? "") : toInt(cur?.[key] ?? 0);
     });
   }
 
   keys.forEach(k=>{
     const el = els[k];
+    if(!el) return;
 
     el.addEventListener("focus", ()=> el.classList.add("editing"));
     el.addEventListener("blur", ()=> commit(el));
@@ -237,6 +378,8 @@
     });
 
     el.addEventListener("paste", (e)=>{
+      const key = el.dataset.key;
+      if(!numericKeys.has(key)) return;
       e.preventDefault();
       const text = (e.clipboardData || window.clipboardData).getData("text");
       document.execCommand("insertText", false, String(text).replace(/\s+/g," ").trim());
@@ -247,5 +390,3 @@
 </script>
 </body>
 </html>
-
-
