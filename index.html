@@ -155,6 +155,13 @@
           </div>
         </div>
 
+        <div class="row">
+          <div class="left">
+            <span class="label">Media:</span>
+            <span class="value" id="mediaL">0</span>
+          </div>
+        </div>
+
         <div class="ditto-stack" id="dittoListL" data-key="dittoL"></div>
         <div class="row">
           <div class="left">
@@ -195,6 +202,13 @@
           </div>
         </div>
 
+        <div class="row">
+          <div class="left">
+            <span class="label">Media:</span>
+            <span class="value" id="mediaR">0</span>
+          </div>
+        </div>
+
         <div class="ditto-stack" id="dittoListR" data-key="dittoR"></div>
         <div class="row">
           <div class="left">
@@ -232,6 +246,10 @@
   const textKeys = new Set(["nameL","nameR"]);
 
   const els = Object.fromEntries(keys.map(k => [k, document.getElementById(k)]));
+  const mediaEls = {
+    left: document.getElementById("mediaL"),
+    right: document.getElementById("mediaR"),
+  };
   const dittoStacks = {
     dittoL: document.getElementById("dittoListL"),
     dittoR: document.getElementById("dittoListR"),
@@ -252,6 +270,14 @@
   function toInt(x){
     const n = parseInt(String(x).replace(/[^\d-]/g,""), 10);
     return Number.isFinite(n) ? n : 0;
+  }
+
+  function calcMedia(points, tries){
+    const p = toInt(points);
+    const t = toInt(tries);
+    if(t <= 0) return "0";
+    const value = p / t;
+    return Number.isInteger(value) ? String(value) : value.toFixed(2).replace(/\.?0+$/, "");
   }
 
   async function ensureInit(){
@@ -298,6 +324,9 @@
       if(el.classList.contains("editing")) continue; // non disturbare chi scrive
       el.textContent = toInt(val ?? 0);
     }
+
+    mediaEls.left.textContent = calcMedia(d?.puntiY ?? 0, d?.tryX ?? 0);
+    mediaEls.right.textContent = calcMedia(d?.puntiA ?? 0, d?.tryZ ?? 0);
 
     buildDittoImageList(dittoStacks.dittoL, toInt(d?.dittoL ?? 0));
     buildDittoImageList(dittoStacks.dittoR, toInt(d?.dittoR ?? 0));
